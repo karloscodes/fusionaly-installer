@@ -35,7 +35,7 @@ func newManagerWithExecutor(logger *logging.Logger, exec dockerExecutor) *Manage
 
 // CreateAdminUser creates the initial admin user inside the container.
 func (m *Manager) CreateAdminUser(email, password string) error {
-	err := m.docker.ExecuteCommand("/app/imctl", "create-admin-user", email, password)
+	err := m.docker.ExecuteCommand("/app/fnctl", "create-admin-user", email, password)
 	if err != nil {
 		return fmt.Errorf("failed to create admin user: %w", err)
 	}
@@ -45,7 +45,7 @@ func (m *Manager) CreateAdminUser(email, password string) error {
 // ChangeAdminPassword changes the password of an existing admin user.
 func (m *Manager) ChangeAdminPassword(email, newPassword string) error {
 	m.logger.InfoWithTime("Changing admin password for %s", email)
-	err := m.docker.ExecuteCommand("/app/imctl", "change-admin-password", email, newPassword)
+	err := m.docker.ExecuteCommand("/app/fnctl", "change-admin-password", email, newPassword)
 	if err != nil {
 		return fmt.Errorf("failed to change admin password: %w", err)
 	}

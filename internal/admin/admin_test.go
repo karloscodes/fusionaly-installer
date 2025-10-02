@@ -38,7 +38,7 @@ func TestCreateAdminUser(t *testing.T) {
 	if err := mgr.CreateAdminUser(email, pass); err != nil {
 		t.Fatalf("CreateAdminUser returned error: %v", err)
 	}
-	want := [][]string{{"/app/imctl", "create-admin-user", email, pass}}
+	want := [][]string{{"/app/fnctl", "create-admin-user", email, pass}}
 	if !reflect.DeepEqual(fe.cmds, want) {
 		t.Errorf("commands mismatch\nwant %#v\ngot  %#v", want, fe.cmds)
 	}
@@ -51,7 +51,7 @@ func TestChangeAdminPassword(t *testing.T) {
 	if err := mgr.ChangeAdminPassword(email, pass); err != nil {
 		t.Fatalf("ChangeAdminPassword returned error: %v", err)
 	}
-	want := [][]string{{"/app/imctl", "change-admin-password", email, pass}}
+	want := [][]string{{"/app/fnctl", "change-admin-password", email, pass}}
 	if !reflect.DeepEqual(fe.cmds, want) {
 		t.Errorf("commands mismatch\nwant %#v\ngot  %#v", want, fe.cmds)
 	}
@@ -82,8 +82,8 @@ func TestSequenceCommands(t *testing.T) {
 		t.Fatal(err)
 	}
 	want := [][]string{
-		{"/app/imctl", "create-admin-user", "a@b.com", "pass1234"},
-		{"/app/imctl", "change-admin-password", "a@b.com", "pass4321"},
+		{"/app/fnctl", "create-admin-user", "a@b.com", "pass1234"},
+		{"/app/fnctl", "change-admin-password", "a@b.com", "pass4321"},
 	}
 	if !reflect.DeepEqual(fe.cmds, want) {
 		t.Errorf("sequence commands mismatch\nwant %#v\ngot  %#v", want, fe.cmds)
@@ -116,7 +116,7 @@ func TestAdminUserCreation(t *testing.T) {
 			t.Errorf("Expected admin user creation to succeed, got error: %v", err)
 		}
 		
-		expectedCmd := [][]string{{"/app/imctl", "create-admin-user", email, password}}
+		expectedCmd := [][]string{{"/app/fnctl", "create-admin-user", email, password}}
 		if !reflect.DeepEqual(fe.cmds, expectedCmd) {
 			t.Errorf("Expected create-admin-user command, got: %v", fe.cmds)
 		}
@@ -146,7 +146,7 @@ func TestAdminPasswordManagement(t *testing.T) {
 			t.Errorf("Expected password change to succeed, got error: %v", err)
 		}
 		
-		expectedCmd := [][]string{{"/app/imctl", "change-admin-password", email, newPassword}}
+		expectedCmd := [][]string{{"/app/fnctl", "change-admin-password", email, newPassword}}
 		if !reflect.DeepEqual(fe.cmds, expectedCmd) {
 			t.Errorf("Expected change-admin-password command, got: %v", fe.cmds)
 		}
@@ -184,8 +184,8 @@ func TestAdminWorkflow(t *testing.T) {
 		}
 		
 		expectedCmds := [][]string{
-			{"/app/imctl", "create-admin-user", email, initialPassword},
-			{"/app/imctl", "change-admin-password", email, newPassword},
+			{"/app/fnctl", "create-admin-user", email, initialPassword},
+			{"/app/fnctl", "change-admin-password", email, newPassword},
 		}
 		
 		if !reflect.DeepEqual(fe.cmds, expectedCmds) {
