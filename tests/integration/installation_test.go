@@ -58,6 +58,8 @@ func TestInstallation(t *testing.T) {
 	config.VMName = "fusionaly-test-vm"
 	config.EnvVars["ENV"] = "test"
 	config.EnvVars["SKIP_PORT_CHECKING"] = "1"
+	// Use a lightweight test image that exists (nginx is small and always available)
+	config.EnvVars["APP_IMAGE"] = "nginx:alpine"
 
 	runner := testrunner.NewTestRunner(config)
 	os.Setenv("KEEP_VM", "1")
