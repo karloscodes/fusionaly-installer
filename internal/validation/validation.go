@@ -204,6 +204,11 @@ func ValidateVersion(version string) error {
 		return errors.NewValidationError("version", version, "version cannot be empty")
 	}
 
+	// Allow "latest" as a special case
+	if version == "latest" {
+		return nil
+	}
+
 	// Basic semantic version validation (major.minor.patch)
 	versionRegex := regexp.MustCompile(`^v?(\d+)\.(\d+)\.(\d+)(?:-([0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*))?(?:\+([0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*))?$`)
 	if !versionRegex.MatchString(version) {
