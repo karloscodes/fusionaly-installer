@@ -1,0 +1,5 @@
+{
+  "app_image": "karloscodes/fusionaly-beta:latest",
+  "caddy_image": "caddy:2.9-alpine",
+  "version": "latest"
+}

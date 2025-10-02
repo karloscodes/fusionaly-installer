@@ -1,0 +1,98 @@
+name: Fusionaly Release
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  installer-tests:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: "1.24"
+
+      - name: Install dependencies
+        run: |
+          go mod download
+          go mod tidy
+
+      - name: Build installer
+        run: make build-linux
+
+      - name: Prepare binary
+        run: |
+          # Use architecture-specific binary based on runner, prefer new naming pattern
+          if [ "$(uname -m)" = "x86_64" ]; then
+            ARCH="amd64"
+          else
+            ARCH="arm64"
+          fi
+
+          VERSION=$(cat .version | tr -d '\n')
+
+          # Try new naming pattern first
+          if [ -f "bin/fusionaly-installer-v${VERSION}-${ARCH}" ]; then
+            cp "bin/fusionaly-installer-v${VERSION}-${ARCH}" bin/fusionaly
+            echo "Using new naming pattern: fusionaly-installer-v${VERSION}-${ARCH}"
+          elif [ -f "bin/fusionaly-v${VERSION}-${ARCH}" ]; then
+            cp "bin/fusionaly-v${VERSION}-${ARCH}" bin/fusionaly
+            echo "Using old naming pattern: fusionaly-v${VERSION}-${ARCH}"
+          else
+            echo "No binary found for architecture ${ARCH}"
+            ls -la bin/
+            exit 1
+          fi
+
+          chmod +x bin/fusionaly
+          ls -la bin/
+
+      - name: Run all installer tests
+        env:
+          BINARY_PATH: ${{ github.workspace }}/bin/fusionaly
+          DEBUG: 1
+          LICENSE_KEY: ${{ secrets.LICENSE_KEY }}
+        run: make test
+
+      - name: Collect logs on failure
+        if: failure()
+        run: |
+          echo "Collecting Docker logs..."
+          docker ps -a
+          for container in $(docker ps -a --format "{{.Names}}"); do
+            echo "========== Logs for $container =========="
+            docker logs $container || true
+          done
+
+          echo "Collecting service logs..."
+          ls -la /opt/fusionaly/logs/ || true
+          cat /opt/fusionaly/logs/fusionaly.log || true
+
+      - name: Get version
+        id: get_version
+        run: |
+          VERSION=$(cat .version | tr -d '\n')
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
+          echo "Version is: $VERSION"
+
+      - name: Create GitHub Release (on push to main)
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          TAG="v${{ env.VERSION }}"
+          gh release create "$TAG" \
+            bin/fusionaly-v${{ env.VERSION }}-amd64 \
+            bin/fusionaly-v${{ env.VERSION }}-arm64 \
+            bin/fusionaly-installer-v${{ env.VERSION }}-amd64 \
+            bin/fusionaly-installer-v${{ env.VERSION }}-arm64 \
+            config/config.json \
+            --title "Release v${{ env.VERSION }}" \
+            --notes "Automated release with binaries and config.json for version ${{ env.VERSION }}" \
+            --draft=false
+        shell: bash
