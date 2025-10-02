@@ -1,13 +1,13 @@
 #!/bin/bash
 
-# Script to set up a Multipass VM for testing infinity-metrics-installer
+# Script to set up a Multipass VM for testing fusionaly-installer
 
 # Configuration
 VM_NAME="infinity-test-vm"
 VM_MEMORY="2G"
 VM_DISK="10G"
 VM_CPUS="2"
-INSTALLER_BINARY="./bin/infinity-metrics"  # Adjust this path if your binary is elsewhere
+INSTALLER_BINARY="./bin/fusionaly"  # Adjust this path if your binary is elsewhere
 UBUNTU_VERSION="22.04"                    # LTS version
 
 # Colors for output

@@ -8,7 +8,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"infinity-metrics-installer/internal/logging"
+	"fusionaly-installer/internal/logging"
 )
 
 func TestNewChecker(t *testing.T) {

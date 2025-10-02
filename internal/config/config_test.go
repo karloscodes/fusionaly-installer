@@ -5,7 +5,7 @@ import (
 	"strings"
 	"testing"
 
-	"infinity-metrics-installer/internal/logging"
+	"fusionaly-installer/internal/logging"
 )
 
 func testLogger(t *testing.T) *logging.Logger {
@@ -70,8 +70,8 @@ func TestValidate_MissingFields(t *testing.T) {
 func TestSettersAndGetters(t *testing.T) {
 	c := NewConfig(testLogger(t))
 	c.SetInstallDir("/foo/bar")
-	if got := c.GetMainDBPath(); got != "/foo/bar/storage/infinity-metrics-production.db" {
-		t.Errorf("GetMainDBPath() = %q, want %q", got, "/foo/bar/storage/infinity-metrics-production.db")
+	if got := c.GetMainDBPath(); got != "/foo/bar/storage/fusionaly-production.db" {
+		t.Errorf("GetMainDBPath() = %q, want %q", got, "/foo/bar/storage/fusionaly-production.db")
 	}
 	c.SetCaddyImage("caddy:custom")
 	if c.data.CaddyImage != "caddy:custom" {
@@ -103,14 +103,14 @@ func TestGeneratePrivateKey_Uniqueness(t *testing.T) {
 func TestNewConfig_Defaults(t *testing.T) {
 	c := NewConfig(testLogger(t))
 	data := c.data
-	if data.AppImage != "karloscodes/infinity-metrics-beta:latest" {
-		t.Errorf("AppImage default = %q, want %q", data.AppImage, "karloscodes/infinity-metrics-beta:latest")
+	if data.AppImage != "karloscodes/fusionaly-beta:latest" {
+		t.Errorf("AppImage default = %q, want %q", data.AppImage, "karloscodes/fusionaly-beta:latest")
 	}
 	if data.CaddyImage != "caddy:2.7-alpine" {
 		t.Errorf("CaddyImage default = %q, want %q", data.CaddyImage, "caddy:2.7-alpine")
 	}
-	if data.InstallDir != "/opt/infinity-metrics" {
-		t.Errorf("InstallDir default = %q, want %q", data.InstallDir, "/opt/infinity-metrics")
+	if data.InstallDir != "/opt/fusionaly" {
+		t.Errorf("InstallDir default = %q, want %q", data.InstallDir, "/opt/fusionaly")
 	}
 }
 
@@ -430,8 +430,8 @@ func TestConfigurationValidation(t *testing.T) {
 		c.data.Domain = "metrics.company.com"
 		c.data.AppImage = "karloscodes/infinity-metrics:latest"
 		c.data.CaddyImage = "caddy:2.7-alpine"
-		c.data.InstallDir = "/opt/infinity-metrics"
-		c.data.BackupPath = "/opt/infinity-metrics/backup"
+		c.data.InstallDir = "/opt/fusionaly"
+		c.data.BackupPath = "/opt/fusionaly/backup"
 		c.data.PrivateKey = "this-is-a-very-long-private-key-that-meets-minimum-requirements"
 		c.data.Version = "v1.0.0"
 		c.data.InstallerURL = "https://company.com/installer"
@@ -465,9 +465,9 @@ func TestConfigurationDefaults(t *testing.T) {
 		data := c.GetData()
 		
 		expectedDefaults := map[string]string{
-			"AppImage":   "karloscodes/infinity-metrics-beta:latest",
+			"AppImage":   "karloscodes/fusionaly-beta:latest",
 			"CaddyImage": "caddy:2.7-alpine",
-			"InstallDir": "/opt/infinity-metrics",
+			"InstallDir": "/opt/fusionaly",
 		}
 		
 		if data.AppImage != expectedDefaults["AppImage"] {

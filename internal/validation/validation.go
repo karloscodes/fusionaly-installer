@@ -8,7 +8,7 @@ import (
 	"strconv"
 	"strings"
 
-	"infinity-metrics-installer/internal/errors"
+	"fusionaly-installer/internal/errors"
 )
 
 var (

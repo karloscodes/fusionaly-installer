@@ -8,8 +8,8 @@ import (
 	"testing"
 	"time"
 
-	customerrors "infinity-metrics-installer/internal/errors"
-	"infinity-metrics-installer/internal/logging"
+	customerrors "fusionaly-installer/internal/errors"
+	"fusionaly-installer/internal/logging"
 )
 
 func createTestLogger() *logging.Logger {

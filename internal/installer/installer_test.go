@@ -8,8 +8,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"infinity-metrics-installer/internal/config"
-	"infinity-metrics-installer/internal/logging"
+	"fusionaly-installer/internal/config"
+	"fusionaly-installer/internal/logging"
 )
 
 func TestNewInstaller(t *testing.T) {
@@ -38,7 +38,7 @@ func TestGetMainDBPath(t *testing.T) {
 
 	// Test with default config
 	dbPath := installer.GetMainDBPath()
-	expectedPath := filepath.Join(DefaultInstallDir, "storage", "infinity-metrics-production.db")
+	expectedPath := filepath.Join(DefaultInstallDir, "storage", "fusionaly-production.db")
 	assert.Equal(t, expectedPath, dbPath)
 
 	// Test with custom install dir
@@ -47,7 +47,7 @@ func TestGetMainDBPath(t *testing.T) {
 	installer.config = cfg
 
 	dbPath = installer.GetMainDBPath()
-	expectedPath = filepath.Join("/custom/install/dir", "storage", "infinity-metrics-production.db")
+	expectedPath = filepath.Join("/custom/install/dir", "storage", "fusionaly-production.db")
 	assert.Equal(t, expectedPath, dbPath)
 }
 
@@ -71,9 +71,9 @@ func TestGetBackupDir(t *testing.T) {
 }
 
 func TestConstants(t *testing.T) {
-	assert.Equal(t, "/opt/infinity-metrics", DefaultInstallDir)
-	assert.Equal(t, "/usr/local/bin/infinity-metrics", DefaultBinaryPath)
-	assert.Equal(t, "/etc/cron.d/infinity-metrics-update", DefaultCronFile)
+	assert.Equal(t, "/opt/fusionaly", DefaultInstallDir)
+	assert.Equal(t, "/usr/local/bin/fusionaly", DefaultBinaryPath)
+	assert.Equal(t, "/etc/cron.d/fusionaly-update", DefaultCronFile)
 	assert.Equal(t, "0 3 * * *", DefaultCronSchedule)
 }
 

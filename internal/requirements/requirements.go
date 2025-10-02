@@ -5,7 +5,7 @@ import (
 	"net"
 	"os"
 
-	"infinity-metrics-installer/internal/logging"
+	"fusionaly-installer/internal/logging"
 )
 
 type Checker struct {

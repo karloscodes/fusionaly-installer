@@ -9,18 +9,18 @@ import (
 	"strings"
 	"time"
 
-	"infinity-metrics-installer/internal/config"
-	"infinity-metrics-installer/internal/cron"
-	"infinity-metrics-installer/internal/database"
-	"infinity-metrics-installer/internal/docker"
-	"infinity-metrics-installer/internal/logging"
-	"infinity-metrics-installer/internal/requirements"
+	"fusionaly-installer/internal/config"
+	"fusionaly-installer/internal/cron"
+	"fusionaly-installer/internal/database"
+	"fusionaly-installer/internal/docker"
+	"fusionaly-installer/internal/logging"
+	"fusionaly-installer/internal/requirements"
 )
 
 const (
-	DefaultInstallDir   = "/opt/infinity-metrics"
-	DefaultBinaryPath   = "/usr/local/bin/infinity-metrics"
-	DefaultCronFile     = "/etc/cron.d/infinity-metrics-update"
+	DefaultInstallDir   = "/opt/fusionaly"
+	DefaultBinaryPath   = "/usr/local/bin/fusionaly"
+	DefaultCronFile     = "/etc/cron.d/fusionaly-update"
 	DefaultCronSchedule = "0 3 * * *"
 )
 
@@ -51,7 +51,7 @@ func (i *Installer) GetConfig() *config.Config {
 
 func (i *Installer) GetMainDBPath() string {
 	data := i.config.GetData()
-	return filepath.Join(data.InstallDir, "storage", "infinity-metrics-production.db")
+	return filepath.Join(data.InstallDir, "storage", "fusionaly-production.db")
 }
 
 func (i *Installer) GetBackupDir() string {
@@ -142,7 +142,7 @@ func (i *Installer) RunCompleteInstallation() error {
 
 // displayWelcomeMessage shows the initial welcome and requirements message
 func (i *Installer) displayWelcomeMessage() {
-	fmt.Println("🚀 Welcome to Infinity Metrics Installer!")
+	fmt.Println("🚀 Welcome to Fusionaly Installer!")
 	fmt.Println()
 	fmt.Println("📋 Requirements: Ports 80/443 available, root privileges, internet connection")
 	fmt.Println("📋 DNS Configuration (Optional): A/AAAA records are optional but useful if set before install")
@@ -253,7 +253,7 @@ func (i *Installer) DisplayCompletionMessage() {
 		fmt.Printf("   1. Configure DNS: Add A/AAAA record for %s pointing to this server\n", data.Domain)
 		fmt.Println("   2. Wait for DNS propagation (up to 24 hours)")
 		fmt.Printf("   3. Test access: https://%s\n", data.Domain)
-		fmt.Println("   4. Monitor logs: sudo tail -f /opt/infinity-metrics/logs/caddy.log")
+		fmt.Println("   4. Monitor logs: sudo tail -f /opt/fusionaly/logs/caddy.log")
 		fmt.Println("\n📋 Note: All components are installed. The system will work once DNS is configured.")
 		fmt.Println("📋 SSL setup might not be immediate due to Let's Encrypt retries.")
 	}
@@ -266,10 +266,10 @@ func (i *Installer) DisplayCompletionMessage() {
 	fmt.Printf("🌐 Dashboard URL: https://%s\n", data.Domain)
 	// Generate the admin email that will be used for Let's Encrypt
 	baseDomain := extractBaseDomain(data.Domain)
-	_ = fmt.Sprintf("admin-infinity-metrics@%s", baseDomain) // Keep for potential future use
+	_ = fmt.Sprintf("admin-fusionaly@%s", baseDomain) // Keep for potential future use
 	fmt.Println()
-	fmt.Println("🚀 Your Infinity Metrics installation is ready!")
-	fmt.Println("Thank you for choosing Infinity Metrics for your analytics needs.")
+	fmt.Println("🚀 Your Fusionaly installation is ready!")
+	fmt.Println("Thank you for choosing Fusionaly for your analytics needs.")
 }
 
 func (i *Installer) Run() error {
@@ -303,7 +303,7 @@ func (i *Installer) Run() error {
 	close(progressChan)
 	i.logger.Success("Docker installed successfully")
 
-	i.logger.Info("Step 4/%d: Configuring Infinity Metrics", totalSteps)
+	i.logger.Info("Step 4/%d: Configuring Fusionaly", totalSteps)
 	// Step 4: Config
 	data := i.config.GetData()
 	if err := i.createInstallDir(data.InstallDir); err != nil {
@@ -355,7 +355,7 @@ func (i *Installer) Run() error {
 	}
 	i.logger.Success("Configuration validated and saved to %s", envFile)
 
-	i.logger.Info("Step 5/%d: Deploying Infinity Metrics", totalSteps)
+	i.logger.Info("Step 5/%d: Deploying Fusionaly", totalSteps)
 	// Step 5: Deploy
 	i.logger.Info("Deploying Docker containers...")
 	// Show progress indicator for deployment

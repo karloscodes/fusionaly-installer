@@ -4,8 +4,8 @@ import (
 	"strings"
 	"testing"
 
-	"infinity-metrics-installer/internal/config"
-	"infinity-metrics-installer/internal/logging"
+	"fusionaly-installer/internal/config"
+	"fusionaly-installer/internal/logging"
 )
 
 func testLogger(t *testing.T) *logging.Logger {
@@ -20,7 +20,7 @@ func TestGenerateCaddyfile_ProdEnv(t *testing.T) {
 	if err != nil {
 		t.Fatalf("generateCaddyfile error: %v", err)
 	}
-	if !strings.Contains(caddyfile, "admin-infinity-metrics@example.com") {
+	if !strings.Contains(caddyfile, "admin-fusionaly@example.com") {
 		t.Errorf("Caddyfile missing generated admin email in prod env")
 	}
 }
@@ -38,7 +38,7 @@ func TestGenerateCaddyfile_WithDatabaseUser(t *testing.T) {
 	if !strings.Contains(caddyfile, "admin@mycompany.com") {
 		t.Errorf("Caddyfile should use database user email, got: %s", caddyfile)
 	}
-	if strings.Contains(caddyfile, "admin-infinity-metrics@example.com") {
+	if strings.Contains(caddyfile, "admin-fusionaly@example.com") {
 		t.Errorf("Caddyfile should not contain generated email when database user exists")
 	}
 }
@@ -56,7 +56,7 @@ func TestCaddyFileGeneration(t *testing.T) {
 			t.Errorf("Expected Caddyfile generation to succeed, got error: %v", err)
 		}
 		
-		if !strings.Contains(caddyfile, "admin-infinity-metrics@company.com") {
+		if !strings.Contains(caddyfile, "admin-fusionaly@company.com") {
 			t.Error("Expected Caddyfile to include generated admin email for SSL certificates")
 		}
 		
@@ -131,14 +131,14 @@ func TestGenerateAdminEmail(t *testing.T) {
 		expected string
 	}{
 		// Examples from requirements
-		{"subdomain example", "t.getinfinitymetrics.com", "admin-infinity-metrics@getinfinitymetrics.com"},
-		{"google.com", "google.com", "admin-infinity-metrics@google.com"},
-		{"analytics subdomain", "analytics.company.com", "admin-infinity-metrics@company.com"},
+		{"subdomain example", "t.getinfinitymetrics.com", "admin-fusionaly@getinfinitymetrics.com"},
+		{"google.com", "google.com", "admin-fusionaly@google.com"},
+		{"analytics subdomain", "analytics.company.com", "admin-fusionaly@company.com"},
 		
 		// Additional test cases
-		{"localhost", "localhost", "admin-infinity-metrics@localhost"},
-		{"triple subdomain", "sub.analytics.company.com", "admin-infinity-metrics@company.com"},
-		{"org domain", "sub.example.org", "admin-infinity-metrics@example.org"},
+		{"localhost", "localhost", "admin-fusionaly@localhost"},
+		{"triple subdomain", "sub.analytics.company.com", "admin-fusionaly@company.com"},
+		{"org domain", "sub.example.org", "admin-fusionaly@example.org"},
 	}
 
 	for _, tt := range tests {

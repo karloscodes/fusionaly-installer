@@ -12,7 +12,7 @@ import (
 	"strings"
 	"time"
 
-	"infinity-metrics-installer/internal/logging"
+	"fusionaly-installer/internal/logging"
 )
 
 // ---- Clock abstraction (for deterministic tests) ----

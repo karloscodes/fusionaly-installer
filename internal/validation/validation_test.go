@@ -4,7 +4,7 @@ import (
 	"errors"
 	"testing"
 
-	customerrors "infinity-metrics-installer/internal/errors"
+	customerrors "fusionaly-installer/internal/errors"
 )
 
 func TestValidateEmail(t *testing.T) {

@@ -8,13 +8,13 @@ import (
 	"syscall"
 	"time"
 
-	"infinity-metrics-installer/internal/admin"
-	"infinity-metrics-installer/internal/config"
-	"infinity-metrics-installer/internal/errors"
-	"infinity-metrics-installer/internal/installer"
-	"infinity-metrics-installer/internal/logging"
-	"infinity-metrics-installer/internal/updater"
-	"infinity-metrics-installer/internal/validation"
+	"fusionaly-installer/internal/admin"
+	"fusionaly-installer/internal/config"
+	"fusionaly-installer/internal/errors"
+	"fusionaly-installer/internal/installer"
+	"fusionaly-installer/internal/logging"
+	"fusionaly-installer/internal/updater"
+	"fusionaly-installer/internal/validation"
 
 	"golang.org/x/term"
 )
@@ -273,7 +273,7 @@ func runAdminPasswordChange(logger *logging.Logger) error {
 }
 
 func runUpdateLicenseKey(logger *logging.Logger, startTime time.Time) error {
-	envFile := "/opt/infinity-metrics/.env"
+	envFile := "/opt/fusionaly/.env"
 
 	var newLicenseKey string
 

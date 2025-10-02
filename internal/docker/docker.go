@@ -11,10 +11,10 @@ import (
 	"text/template"
 	"time"
 
-	"infinity-metrics-installer/internal/config"
-	"infinity-metrics-installer/internal/database"
-	"infinity-metrics-installer/internal/errors"
-	"infinity-metrics-installer/internal/logging"
+	"fusionaly-installer/internal/config"
+	"fusionaly-installer/internal/database"
+	"fusionaly-installer/internal/errors"
+	"fusionaly-installer/internal/logging"
 )
 
 const (
@@ -653,7 +653,7 @@ func (d *Docker) containerExists(name string) bool {
 	return err == nil && strings.TrimSpace(out) != ""
 }
 
-// VerifyContainersRunning checks if the Infinity Metrics containers are running
+// VerifyContainersRunning checks if the Fusionaly containers are running
 func (d *Docker) VerifyContainersRunning() (bool, error) {
 	// Check app container
 	appRunning, err := d.isContainerRunning("infinity-app")
@@ -682,14 +682,14 @@ func (d *Docker) isContainerRunning(containerName string) (bool, error) {
 }
 
 // generateAdminEmail generates the admin email for Let's Encrypt based on the domain
-// Format: admin-infinity-metrics@{base_domain}
+// Format: admin-fusionaly@{base_domain}
 // Examples:
-//   - "analytics.company.com" -> "admin-infinity-metrics@company.com"
-//   - "t.getinfinitymetrics.com" -> "admin-infinity-metrics@getinfinitymetrics.com"
-//   - "google.com" -> "admin-infinity-metrics@google.com"
+//   - "analytics.company.com" -> "admin-fusionaly@company.com"
+//   - "t.getinfinitymetrics.com" -> "admin-fusionaly@getinfinitymetrics.com"
+//   - "google.com" -> "admin-fusionaly@google.com"
 func generateAdminEmail(domain string) string {
 	baseDomain := extractBaseDomain(domain)
-	return fmt.Sprintf("admin-infinity-metrics@%s", baseDomain)
+	return fmt.Sprintf("admin-fusionaly@%s", baseDomain)
 }
 
 // extractBaseDomain extracts the base domain from a subdomain

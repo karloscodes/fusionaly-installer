@@ -228,7 +228,7 @@ func (r *TestRunner) runInVM() error {
 	}
 
 	r.logf("Moving binary to system location")
-	moveCmd := exec.Command("multipass", "exec", r.Config.VMName, "--", "sudo", "mv", "/home/ubuntu/infinity-metrics", "/usr/local/bin/infinity-metrics")
+	moveCmd := exec.Command("multipass", "exec", r.Config.VMName, "--", "sudo", "mv", "/home/ubuntu/infinity-metrics", "/usr/local/bin/fusionaly")
 	moveCmd.Stdout = r.Logger
 	moveCmd.Stderr = r.Logger
 
@@ -247,7 +247,7 @@ func (r *TestRunner) runInVM() error {
 	}
 
 	// Create the command to run with stdin input
-	cmdParts := []string{"exec", r.Config.VMName, "--", "sudo", "/usr/local/bin/infinity-metrics"}
+	cmdParts := []string{"exec", r.Config.VMName, "--", "sudo", "/usr/local/bin/fusionaly"}
 	cmdParts = append(cmdParts, r.Config.Args...)
 
 	cmd := exec.Command("multipass", cmdParts...)

@@ -2,7 +2,7 @@ package cron
 
 import (
 	"testing"
-	"infinity-metrics-installer/internal/logging"
+	"fusionaly-installer/internal/logging"
 )
 
 func testLogger(t *testing.T) *logging.Logger {

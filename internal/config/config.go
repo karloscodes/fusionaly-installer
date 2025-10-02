@@ -17,20 +17,20 @@ import (
 
 	"golang.org/x/term"
 
-	"infinity-metrics-installer/internal/errors"
-	"infinity-metrics-installer/internal/logging"
-	"infinity-metrics-installer/internal/validation"
+	"fusionaly-installer/internal/errors"
+	"fusionaly-installer/internal/logging"
+	"fusionaly-installer/internal/validation"
 )
 
 // GithubRepo is the centralized GitHub repository URL slug
-const GithubRepo = "karloscodes/infinity-metrics-installer"
+const GithubRepo = "karloscodes/fusionaly-installer"
 
 // ConfigData holds the configuration
 type ConfigData struct {
 	Domain       string   // Local: User-provided
-	AppImage     string   // GitHub Release/Default: e.g., "karloscodes/infinity-metrics-beta:latest"
+	AppImage     string   // GitHub Release/Default: e.g., "karloscodes/fusionaly-beta:latest"
 	CaddyImage   string   // GitHub Release/Default: e.g., "caddy:2.7-alpine"
-	InstallDir   string   // Default: e.g., "/opt/infinity-metrics"
+	InstallDir   string   // Default: e.g., "/opt/fusionaly"
 	BackupPath   string   // Default: SQLite backup location
 	PrivateKey   string   // Generated: secure random key for INFINITY_METRICS_PRIVATE_KEY
 	Version      string   // GitHub Release: Version of the infinity-metrics binary (optional)
@@ -52,10 +52,10 @@ func NewConfig(logger *logging.Logger) *Config {
 		logger: logger,
 		data: ConfigData{
 			Domain:       "", // Required from user
-			AppImage:     "karloscodes/infinity-metrics-beta:latest",
+			AppImage:     "karloscodes/fusionaly-beta:latest",
 			CaddyImage:   "caddy:2.7-alpine",
-			InstallDir:   "/opt/infinity-metrics",
-			BackupPath:   "/opt/infinity-metrics/storage/backups",
+			InstallDir:   "/opt/fusionaly",
+			BackupPath:   "/opt/fusionaly/storage/backups",
 			PrivateKey:   "",
 			Version:      "latest",
 			InstallerURL: fmt.Sprintf("https://github.com/%s/releases/latest", GithubRepo),
@@ -180,7 +180,7 @@ func (c *Config) CollectFromUser(reader *bufio.Reader) error {
 
 	// Initialize default values
 	c.data.Domain = ""
-	c.data.InstallDir = "/opt/infinity-metrics"
+	c.data.InstallDir = "/opt/fusionaly"
 
 	// Collect domain
 	for {
@@ -256,9 +256,9 @@ func (c *Config) collectFromEnvironment() error {
 	c.logger.Info("  Domain: %s", c.data.Domain)
 
 	// Set default values for other fields
-	c.data.InstallDir = "/opt/infinity-metrics"
+	c.data.InstallDir = "/opt/fusionaly"
 	c.data.BackupPath = filepath.Join(c.data.InstallDir, "backups")
-	c.data.AppImage = "karloscodes/infinity-metrics-beta:latest"
+	c.data.AppImage = "karloscodes/fusionaly-beta:latest"
 	c.data.CaddyImage = "caddy:2.7-alpine"
 
 	return nil
@@ -420,7 +420,7 @@ func (c *Config) SetInstallerURL(url string) {
 
 // GetMainDBPath returns the main database path
 func (c *Config) GetMainDBPath() string {
-	return filepath.Join(c.data.InstallDir, "storage", "infinity-metrics-production.db")
+	return filepath.Join(c.data.InstallDir, "storage", "fusionaly-production.db")
 }
 
 // Validate checks required fields
@@ -632,8 +632,8 @@ func (c *Config) FetchFromServer(_ string) error {
 	}
 
 	var configURL string
-	// Try new naming pattern first (infinity-metrics-installer)
-	binaryNameNew := fmt.Sprintf("infinity-metrics-installer-v%s-%s", version, runtime.GOARCH)
+	// Try new naming pattern first (fusionaly-installer)
+	binaryNameNew := fmt.Sprintf("fusionaly-installer-v%s-%s", version, runtime.GOARCH)
 	// Fallback to old naming pattern for backwards compatibility
 	binaryNameOld := fmt.Sprintf("infinity-metrics-v%s-%s", version, runtime.GOARCH)
 	var binaryURL string

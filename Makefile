@@ -1,4 +1,4 @@
-# Makefile for Infinity Metrics Installer
+# Makefile for Fusionaly Installer
 
 # Go parameters
 GOCMD=go
@@ -7,7 +7,7 @@ GOCLEAN=$(GOCMD) clean
 GOTEST=$(GOCMD) test
 GOGET=$(GOCMD) get
 GOMOD=$(GOCMD) mod
-BINARY_NAME=infinity-metrics
+BINARY_NAME=fusionaly
 BINARY_DIR=bin
 MAIN_PATH=cmd/infinitymetrics/main.go
 ARCH ?= $(shell uname -m | sed 's/x86_64/amd64/' | sed 's/aarch64/arm64/')
@@ -45,7 +45,7 @@ build-linux:
 	# Build with old naming pattern (for backwards compatibility)
 	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 $(GOBUILD) -ldflags "-X main.currentInstallerVersion=$(VERSION)" -o $(BINARY_DIR)/$(BINARY_NAME)-v$(VERSION)-amd64 $(MAIN_PATH)
 	CGO_ENABLED=0 GOOS=linux GOARCH=arm64 $(GOBUILD) -ldflags "-X main.currentInstallerVersion=$(VERSION)" -o $(BINARY_DIR)/$(BINARY_NAME)-v$(VERSION)-arm64 $(MAIN_PATH)
-	# Build with new naming pattern (infinity-metrics-installer)
+	# Build with new naming pattern (fusionaly-installer)
 	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 $(GOBUILD) -ldflags "-X main.currentInstallerVersion=$(VERSION)" -o $(BINARY_DIR)/$(BINARY_NAME)-installer-v$(VERSION)-amd64 $(MAIN_PATH)
 	CGO_ENABLED=0 GOOS=linux GOARCH=arm64 $(GOBUILD) -ldflags "-X main.currentInstallerVersion=$(VERSION)" -o $(BINARY_DIR)/$(BINARY_NAME)-installer-v$(VERSION)-arm64 $(MAIN_PATH)
 	chmod +x $(BINARY_DIR)/$(BINARY_NAME)-v*

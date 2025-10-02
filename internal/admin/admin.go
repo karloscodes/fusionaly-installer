@@ -3,9 +3,9 @@ package admin
 import (
 	"fmt"
 
-	"infinity-metrics-installer/internal/database"
-	"infinity-metrics-installer/internal/docker"
-	"infinity-metrics-installer/internal/logging"
+	"fusionaly-installer/internal/database"
+	"fusionaly-installer/internal/docker"
+	"fusionaly-installer/internal/logging"
 )
 
 // Manager handles administrative user operations inside the running container.

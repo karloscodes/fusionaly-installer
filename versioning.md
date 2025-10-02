@@ -1,13 +1,13 @@
-# Infinity Metrics Versioning Strategy
+# Fusionaly Versioning Strategy
 
-This document explains how versioning works for the `infinity-metrics-installer` project in a simple way. It covers how versions are defined, how releases are created, and how the `config.json` file fits into the process to keep your application up-to-date.
+This document explains how versioning works for the `fusionaly-installer` project in a simple way. It covers how versions are defined, how releases are created, and how the `config.json` file fits into the process to keep your application up-to-date.
 
 ## Key Concepts
 
 - **Version File**: A `.version` file in the repository stores the current version number (e.g., `1.0.0`).
 - **Automatic Releases**: Every commit to the `main` branch triggers a new release of the binary using the version from `.version`.
 - **Config File**: A `config.json` file in the repository specifies settings and is included in each release.
-- **Binary Naming**: Starting with newer releases, binaries use the naming pattern `infinity-metrics-installer-v{VERSION}-{ARCH}` (e.g., `infinity-metrics-installer-v1.0.0-amd64`). For backwards compatibility, the old naming pattern `infinity-metrics-v{VERSION}-{ARCH}` is also supported.
+- **Binary Naming**: Starting with newer releases, binaries use the naming pattern `fusionaly-installer-v{VERSION}-{ARCH}` (e.g., `fusionaly-installer-v1.0.0-amd64`). For backwards compatibility, the old naming pattern `fusionaly-v{VERSION}-{ARCH}` is also supported.
 
 ## How It Works
 
@@ -20,9 +20,9 @@ This document explains how versioning works for the `infinity-metrics-installer`
 
 - When you push a commit to the `main` branch:
   - A GitHub Action (or similar CI/CD tool) reads the version from `.version`.
-  - It builds the `infinity-metrics-installer` binary for different architectures using both naming patterns:
-    - New pattern: `infinity-metrics-installer-v1.0.0-amd64` for Intel CPUs, `infinity-metrics-installer-v1.0.0-arm64` for ARM CPUs
-    - Old pattern (backwards compatibility): `infinity-metrics-v1.0.0-amd64` for Intel CPUs, `infinity-metrics-v1.0.0-arm64` for ARM CPUs
+  - It builds the `fusionaly-installer` binary for different architectures using both naming patterns:
+    - New pattern: `fusionaly-installer-v1.0.0-amd64` for Intel CPUs, `fusionaly-installer-v1.0.0-arm64` for ARM CPUs
+    - Old pattern (backwards compatibility): `fusionaly-v1.0.0-amd64` for Intel CPUs, `fusionaly-v1.0.0-arm64` for ARM CPUs
   - It also includes the `config.json` file from the repository.
   - It creates a new GitHub release with a tag like `v1.0.0` and attaches these files as assets.
 - This happens automatically for every commit to `main`, so each change gets a new release with the same version until `.version` is updated.
@@ -33,14 +33,14 @@ This document explains how versioning works for the `infinity-metrics-installer`
 
 ```json
 {
-  "app_image": "karloscodes/infinity-metrics-beta:latest",
+  "app_image": "karloscodes/fusionaly-beta:latest",
   "caddy_image": "caddy:2.7-alpine",
   "version": "latest"
 }
 ```
 
 - **Purpose**:
-  - `"app_image"`: Specifies the Docker image for the Infinity Metrics application (e.g., `karloscodes/infinity-metrics-beta:latest`).
+  - `"app_image"`: Specifies the Docker image for the Fusionaly application (e.g., `karloscodes/fusionaly-beta:latest`).
   - `"caddy_image"`: Specifies the Docker image for the Caddy web server (e.g., `caddy:2.7-alpine`).
   - `"version"`: Set to `"latest"`, indicating the system should always use the most recent release available.
 - **How It's Used**:
@@ -52,15 +52,15 @@ This document explains how versioning works for the `infinity-metrics-installer`
 
 - The application uses the version from the release tag (e.g., `1.0.0`) to check if a newer binary is available.
 - It downloads the latest binary and `config.json` from the GitHub release when needed.
-- The update system first tries to find the new naming pattern (`infinity-metrics-installer-v{VERSION}-{ARCH}`) and falls back to the old pattern (`infinity-metrics-v{VERSION}-{ARCH}`) for backwards compatibility.
+- The update system first tries to find the new naming pattern (`fusionaly-installer-v{VERSION}-{ARCH}`) and falls back to the old pattern (`fusionaly-v{VERSION}-{ARCH}`) for backwards compatibility.
 - The `config.json` ensures the correct Docker images are used, staying consistent with the "always latest" approach.
 
 ## Binary Naming Migration
 
 The project is transitioning from the old binary naming pattern to a new one:
 
-- **Old Pattern**: `infinity-metrics-v{VERSION}-{ARCH}` (e.g., `infinity-metrics-v1.0.0-amd64`)
-- **New Pattern**: `infinity-metrics-installer-v{VERSION}-{ARCH}` (e.g., `infinity-metrics-installer-v1.0.0-amd64`)
+- **Old Pattern**: `fusionaly-v{VERSION}-{ARCH}` (e.g., `fusionaly-v1.0.0-amd64`)
+- **New Pattern**: `fusionaly-installer-v{VERSION}-{ARCH}` (e.g., `fusionaly-installer-v1.0.0-amd64`)
 
 ### Migration Strategy
 
@@ -85,7 +85,7 @@ This gradual migration ensures zero downtime and maintains backwards compatibili
 
 1. You set `.version` to `1.0.0` and push a commit to `main`.
 2. A release `v1.0.0` is created with binaries using both naming patterns and `config.json`.
-3. The application starts with `v1.0.0` and uses `config.json` to pull `karloscodes/infinity-metrics-beta:latest` and `caddy:2.7-alpine`.
+3. The application starts with `v1.0.0` and uses `config.json` to pull `karloscodes/fusionaly-beta:latest` and `caddy:2.7-alpine`.
 4. Later, you update `.version` to `1.0.1` and push another commit.
 5. A new release `v1.0.1` is created with updated binaries (both patterns) and the same `config.json`.
 6. The application detects `1.0.1`, downloads the appropriate binary (preferring new pattern), and uses the same `config.json` settings.

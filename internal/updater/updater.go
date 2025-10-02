@@ -13,17 +13,17 @@ import (
 	"syscall"
 	"time"
 
-	"infinity-metrics-installer/internal/config"
-	"infinity-metrics-installer/internal/cron"
-	"infinity-metrics-installer/internal/database"
-	"infinity-metrics-installer/internal/docker"
-	"infinity-metrics-installer/internal/logging"
+	"fusionaly-installer/internal/config"
+	"fusionaly-installer/internal/cron"
+	"fusionaly-installer/internal/database"
+	"fusionaly-installer/internal/docker"
+	"fusionaly-installer/internal/logging"
 )
 
 const (
-	GitHubRepo        = "karloscodes/infinity-metrics-installer"
+	GitHubRepo        = "karloscodes/fusionaly-installer"
 	GitHubAPIURL      = "https://api.github.com/repos/" + GitHubRepo + "/releases/latest"
-	BinaryInstallPath = "/usr/local/bin/infinity-metrics" // Standard installation path
+	BinaryInstallPath = "/usr/local/bin/fusionaly" // Standard installation path
 )
 
 type Updater struct {
@@ -38,8 +38,8 @@ func NewUpdater(logger *logging.Logger) *Updater {
 		Level:   logger.Level.String(),
 		Verbose: logger.GetVerbose(),
 		Quiet:   logger.GetQuiet(),
-		LogDir:  "/opt/infinity-metrics/logs",
-		LogFile: "infinity-metrics-updater.log",
+		LogDir:  "/opt/fusionaly/logs",
+		LogFile: "fusionaly-updater.log",
 	})
 
 	db := database.NewDatabase(fileLogger)
@@ -95,7 +95,7 @@ func (u *Updater) Run(currentVersion string) error {
 				downloadURL = u.config.GetData().InstallerURL
 				if downloadURL == "" || downloadURL == fmt.Sprintf("https://github.com/%s/releases/latest", config.GithubRepo) {
 					// Try new naming pattern first
-					downloadURL = fmt.Sprintf("https://github.com/%s/releases/download/v%s/infinity-metrics-installer-v%s-%s", GitHubRepo, latestVersion, latestVersion, arch)
+					downloadURL = fmt.Sprintf("https://github.com/%s/releases/download/v%s/fusionaly-installer-v%s-%s", GitHubRepo, latestVersion, latestVersion, arch)
 					u.logger.Info("Trying new naming pattern URL: %s", downloadURL)
 
 					// Test if the new pattern URL is accessible
@@ -176,8 +176,8 @@ func (u *Updater) getLatestVersionAndBinaryURL() (string, string, error) {
 	}
 
 	arch := runtime.GOARCH
-	// Try new naming pattern first (infinity-metrics-installer)
-	expectedAssetNew := fmt.Sprintf("infinity-metrics-installer-v%s-%s", latestVersion, arch)
+	// Try new naming pattern first (fusionaly-installer)
+	expectedAssetNew := fmt.Sprintf("fusionaly-installer-v%s-%s", latestVersion, arch)
 	// Fallback to old naming pattern for backwards compatibility
 	expectedAssetOld := fmt.Sprintf("infinity-metrics-v%s-%s", latestVersion, arch)
 
@@ -440,9 +440,9 @@ func extractVersionFromURL(url string) string {
 	for i, part := range parts {
 		if i < len(parts) {
 			filename := part
-			// Try new naming pattern first (infinity-metrics-installer)
-			if strings.HasPrefix(filename, "infinity-metrics-installer-v") {
-				version := strings.TrimPrefix(filename, "infinity-metrics-installer-v")
+			// Try new naming pattern first (fusionaly-installer)
+			if strings.HasPrefix(filename, "fusionaly-installer-v") {
+				version := strings.TrimPrefix(filename, "fusionaly-installer-v")
 				version = strings.TrimSuffix(version, "-amd64")
 				version = strings.TrimSuffix(version, "-arm64")
 				return version

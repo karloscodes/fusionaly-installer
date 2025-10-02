@@ -4,10 +4,10 @@ import (
 	"fmt"
 	"path/filepath"
 
-	"infinity-metrics-installer/internal/config"
-	"infinity-metrics-installer/internal/database"
-	"infinity-metrics-installer/internal/docker"
-	"infinity-metrics-installer/internal/logging"
+	"fusionaly-installer/internal/config"
+	"fusionaly-installer/internal/database"
+	"fusionaly-installer/internal/docker"
+	"fusionaly-installer/internal/logging"
 )
 
 // Reloader handles container reload operations without database backups or other update steps
@@ -23,8 +23,8 @@ func NewReloader(logger *logging.Logger) *Reloader {
 		Level:   logger.Level.String(),
 		Verbose: logger.GetVerbose(),
 		Quiet:   logger.GetQuiet(),
-		LogDir:  "/opt/infinity-metrics/logs",
-		LogFile: "infinity-metrics-reloader.log",
+		LogDir:  "/opt/fusionaly/logs",
+		LogFile: "fusionaly-reloader.log",
 	})
 
 	db := database.NewDatabase(fileLogger) // Need database for Docker constructor

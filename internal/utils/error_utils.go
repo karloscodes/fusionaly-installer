@@ -6,8 +6,8 @@ import (
 	"path/filepath"
 	"time"
 
-	"infinity-metrics-installer/internal/errors"
-	"infinity-metrics-installer/internal/logging"
+	"fusionaly-installer/internal/errors"
+	"fusionaly-installer/internal/logging"
 )
 
 // FileOperationWithRetry performs a file operation with retry logic

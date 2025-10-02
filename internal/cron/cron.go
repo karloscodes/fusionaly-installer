@@ -5,16 +5,16 @@ import (
 	"os"
 	"path/filepath"
 
-	"infinity-metrics-installer/internal/logging"
+	"fusionaly-installer/internal/logging"
 )
 
 const (
 	// DefaultCronFile is the path to the cron job file
-	DefaultCronFile = "/etc/cron.d/infinity-metrics-update"
+	DefaultCronFile = "/etc/cron.d/fusionaly-update"
 	// DefaultInstallDir is the default installation directory
-	DefaultInstallDir = "/opt/infinity-metrics"
+	DefaultInstallDir = "/opt/fusionaly"
 	// DefaultBinaryPath is the path to the infinity-metrics binary
-	DefaultBinaryPath = "/usr/local/bin/infinity-metrics"
+	DefaultBinaryPath = "/usr/local/bin/fusionaly"
 	// DefaultCronSchedule is the default schedule for the cron job (3:00 AM daily)
 	DefaultCronSchedule = "0 3 * * *"
 )
@@ -47,7 +47,7 @@ func (m *Manager) SetupCronJob() error {
 	}
 
 	// Create a more robust cron job with better environment setup
-	cronContent := "# Infinity Metrics automated updates\n"
+	cronContent := "# Fusionaly automated updates\n"
 	cronContent += "SHELL=/bin/bash\n"
 	cronContent += "PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin\n"
 	cronContent += fmt.Sprintf("INSTALL_DIR=%s\n", m.installDir)

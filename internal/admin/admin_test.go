@@ -5,7 +5,7 @@ import (
 	"reflect"
 	"testing"
 
-	"infinity-metrics-installer/internal/logging"
+	"fusionaly-installer/internal/logging"
 )
 
 type fakeExecutor struct {

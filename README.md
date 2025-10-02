@@ -1,6 +1,6 @@
-# Infinity Metrics Installer
+# Fusionaly Installer
 
-Infinity Metrics is a powerful, privacy-first, ai-powered web analytics platform designed for self-hosting. This repository contains zero-configuration installer for the Infinity Metrics analytics platform. 
+Fusionaly is a powerful, privacy-first, ai-powered web analytics platform designed for self-hosting. This repository contains zero-configuration installer for the Fusionaly analytics platform. 
 
 ## Features
 
@@ -13,7 +13,7 @@ Infinity Metrics is a powerful, privacy-first, ai-powered web analytics platform
 ## Installation
 
 ```bash
-curl -fsSL https://getinfinitymetrics.com/install -o install.sh && sudo bash install.sh
+curl -fsSL https://getfusionaly.com/install -o install.sh && sudo bash install.sh
 ```
 
 ## License
@@ -22,6 +22,6 @@ MIT License - See [LICENSE](LICENSE) for details.
 
 ## Support
 
-- InfinityMetrics: [getinfinitymetrics.com](https://getinfinitymetrics.com)
-- Issues: [GitHub Issues](https://github.com/karloscodes/infinity-metrics-installer/issues)
+- Fusionaly: [getfusionaly.com](https://getfusionaly.com)
+- Issues: [GitHub Issues](https://github.com/karloscodes/fusionaly-installer/issues)
 

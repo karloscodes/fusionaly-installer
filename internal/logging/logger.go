@@ -76,17 +76,17 @@ func NewFileLogger(config Config) *Logger {
 	if logDir == "" {
 		logDir = os.Getenv("LOG_DIR")
 		if logDir == "" {
-			logDir = "/opt/infinity-metrics/logs"
+			logDir = "/opt/fusionaly/logs"
 		}
 	}
 	if err := os.MkdirAll(logDir, 0o755); err != nil {
 		logger.Errorf("Failed to create log directory %s: %v", logDir, err)
 	}
 
-	// Use the LogFile field if specified, otherwise default to infinity-metrics-cli.log
+	// Use the LogFile field if specified, otherwise default to fusionaly-cli.log
 	logFileName := config.LogFile
 	if logFileName == "" {
-		logFileName = "infinity-metrics-cli.log"
+		logFileName = "fusionaly-cli.log"
 	}
 	logFile := filepath.Join(logDir, logFileName)
 
@@ -176,6 +176,6 @@ func DefaultConfig() Config {
 		Verbose: false,
 		LogDir:  "",
 		Quiet:   false,
-		LogFile: "", // Default to empty, will use infinity-metrics-cli.log
+		LogFile: "", // Default to empty, will use fusionaly-cli.log
 	}
 }

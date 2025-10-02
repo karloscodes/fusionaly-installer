@@ -14,7 +14,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"infinity-metrics-installer/internal/pkg/testrunner"
+	"fusionaly-installer/internal/pkg/testrunner"
 )
 
 func isRunningInCI() bool {
@@ -182,7 +182,7 @@ func testVMServiceAccess(t *testing.T, vmName string, url string) {
 	}
 
 	if !success {
-		logCmd := exec.Command("multipass", "exec", vmName, "--", "sudo", "cat", "/opt/infinity-metrics/logs/infinity-metrics.log")
+		logCmd := exec.Command("multipass", "exec", vmName, "--", "sudo", "cat", "/opt/fusionaly/logs/fusionaly.log")
 		logOutput, _ := logCmd.CombinedOutput()
 		t.Logf("Service logs:\n%s", string(logOutput))
 	}
