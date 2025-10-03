@@ -13,7 +13,7 @@ import (
 func TestPrivateKeyGeneration(t *testing.T) {
 	tmpDir := t.TempDir()
 	envFile := filepath.Join(tmpDir, ".env")
-	os.WriteFile(envFile, []byte("INFINITY_METRICS_DOMAIN=localhost\n"), 0o644)
+	os.WriteFile(envFile, []byte("FUSIONALY_DOMAIN=localhost\n"), 0o644)
 
 	logger := logging.NewLogger(logging.Config{Level: "error"})
 	u := NewUpdater(logger)
@@ -28,7 +28,7 @@ func TestPrivateKeyGeneration(t *testing.T) {
 	}
 
 	content, _ := os.ReadFile(envFile)
-	if !strings.Contains(string(content), "INFINITY_METRICS_PRIVATE_KEY") {
+	if !strings.Contains(string(content), "FUSIONALY_PRIVATE_KEY") {
 		t.Fatalf("env file missing generated key")
 	}
 

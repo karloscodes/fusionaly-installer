@@ -145,14 +145,14 @@ func TestLoadFromFile(t *testing.T) {
 
 		// Create temp file with config data
 		tmpFile := t.TempDir() + "/test.env"
-		content := `INFINITY_METRICS_DOMAIN=test.example.com
+		content := `FUSIONALY_DOMAIN=test.example.com
 APP_IMAGE=test/app:latest
 CADDY_IMAGE=test/caddy:latest
 INSTALL_DIR=/custom/install
 BACKUP_PATH=/custom/backup
 VERSION=1.2.3
 INSTALLER_URL=https://test.com/installer
-INFINITY_METRICS_PRIVATE_KEY=testprivatekey123
+FUSIONALY_PRIVATE_KEY=testprivatekey123
 `
 		if err := os.WriteFile(tmpFile, []byte(content), 0o644); err != nil {
 			t.Fatal(err)
@@ -195,7 +195,7 @@ INFINITY_METRICS_PRIVATE_KEY=testprivatekey123
 		c := NewConfig(testLogger(t))
 
 		tmpFile := t.TempDir() + "/test.env"
-		content := `INFINITY_METRICS_DOMAIN=test.example.com
+		content := `FUSIONALY_DOMAIN=test.example.com
 `
 		if err := os.WriteFile(tmpFile, []byte(content), 0o644); err != nil {
 			t.Fatal(err)
@@ -249,14 +249,14 @@ func TestSaveToFile(t *testing.T) {
 	}
 
 	expected := []string{
-		"INFINITY_METRICS_DOMAIN=save.example.com",
+		"FUSIONALY_DOMAIN=save.example.com",
 		"APP_IMAGE=save/app:latest",
 		"CADDY_IMAGE=save/caddy:latest",
 		"INSTALL_DIR=/save/install",
 		"BACKUP_PATH=/save/backup",
 		"VERSION=2.0.0",
 		"INSTALLER_URL=https://save.com/installer",
-		"INFINITY_METRICS_PRIVATE_KEY=", // Should be generated
+		"FUSIONALY_PRIVATE_KEY=", // Should be generated
 	}
 
 	contentStr := string(content)
@@ -267,8 +267,8 @@ func TestSaveToFile(t *testing.T) {
 	}
 
 	// Verify private key was generated and saved
-	if !strings.Contains(contentStr, "INFINITY_METRICS_PRIVATE_KEY=") {
-		t.Error("SaveToFile() should include INFINITY_METRICS_PRIVATE_KEY")
+	if !strings.Contains(contentStr, "FUSIONALY_PRIVATE_KEY=") {
+		t.Error("SaveToFile() should include FUSIONALY_PRIVATE_KEY")
 	}
 }
 

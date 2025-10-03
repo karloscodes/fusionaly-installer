@@ -32,7 +32,7 @@ type ConfigData struct {
 	CaddyImage   string   // GitHub Release/Default: e.g., "caddy:2.7-alpine"
 	InstallDir   string   // Default: e.g., "/opt/fusionaly"
 	BackupPath   string   // Default: SQLite backup location
-	PrivateKey   string   // Generated: secure random key for INFINITY_METRICS_PRIVATE_KEY
+	PrivateKey   string   // Generated: secure random key for FUSIONALY_PRIVATE_KEY
 	Version      string   // GitHub Release: Version of the fusionaly binary (optional)
 	InstallerURL string   // GitHub Release: URL to download new fusionaly binary
 	DNSWarnings  []string // DNS configuration warnings
@@ -294,7 +294,7 @@ func (c *Config) LoadFromFile(filename string) error {
 		}
 		key, value := strings.TrimSpace(parts[0]), strings.TrimSpace(parts[1])
 		switch key {
-		case "INFINITY_METRICS_DOMAIN":
+		case "FUSIONALY_DOMAIN":
 			c.data.Domain = value
 		case "APP_IMAGE":
 			c.data.AppImage = value
@@ -308,11 +308,11 @@ func (c *Config) LoadFromFile(filename string) error {
 			c.data.Version = value
 		case "INSTALLER_URL":
 			c.data.InstallerURL = value
-		case "INFINITY_METRICS_PRIVATE_KEY":
+		case "FUSIONALY_PRIVATE_KEY":
 			c.data.PrivateKey = value
-		case "INFINITY_METRICS_USER":
+		case "FUSIONALY_USER":
 			c.data.User = value
-		case "INFINITY_METRICS_LICENSE_KEY":
+		case "FUSIONALY_LICENSE_KEY":
 			c.data.LicenseKey = value
 		}
 	}
@@ -330,9 +330,9 @@ func (c *Config) LoadFromFile(filename string) error {
 		// Append to file
 		f, ferr := os.OpenFile(filename, os.O_APPEND|os.O_WRONLY, 0)
 		if ferr == nil {
-			fmt.Fprintf(f, "INFINITY_METRICS_PRIVATE_KEY=%s\n", pk)
+			fmt.Fprintf(f, "FUSIONALY_PRIVATE_KEY=%s\n", pk)
 			f.Close()
-			c.logger.Info("Added missing INFINITY_METRICS_PRIVATE_KEY to %s", filename)
+			c.logger.Info("Added missing FUSIONALY_PRIVATE_KEY to %s", filename)
 		}
 	}
 	c.logger.Success("Configuration loaded from %s", filename)
@@ -350,7 +350,7 @@ func (c *Config) SaveToFile(filename string) error {
 			return err
 		}
 		c.data.PrivateKey = pk
-		c.logger.Info("Generated new INFINITY_METRICS_PRIVATE_KEY")
+		c.logger.Info("Generated new FUSIONALY_PRIVATE_KEY")
 	}
 
 	file, err := os.Create(filename)
@@ -359,19 +359,19 @@ func (c *Config) SaveToFile(filename string) error {
 	}
 	defer file.Close()
 
-	fmt.Fprintf(file, "INFINITY_METRICS_DOMAIN=%s\n", c.data.Domain)
+	fmt.Fprintf(file, "FUSIONALY_DOMAIN=%s\n", c.data.Domain)
 	fmt.Fprintf(file, "APP_IMAGE=%s\n", c.data.AppImage)
 	fmt.Fprintf(file, "CADDY_IMAGE=%s\n", c.data.CaddyImage)
 	fmt.Fprintf(file, "INSTALL_DIR=%s\n", c.data.InstallDir)
 	fmt.Fprintf(file, "BACKUP_PATH=%s\n", c.data.BackupPath)
 	fmt.Fprintf(file, "VERSION=%s\n", c.data.Version)
 	fmt.Fprintf(file, "INSTALLER_URL=%s\n", c.data.InstallerURL)
-	fmt.Fprintf(file, "INFINITY_METRICS_PRIVATE_KEY=%s\n", c.data.PrivateKey)
+	fmt.Fprintf(file, "FUSIONALY_PRIVATE_KEY=%s\n", c.data.PrivateKey)
 	if c.data.User != "" {
-		fmt.Fprintf(file, "INFINITY_METRICS_USER=%s\n", c.data.User)
+		fmt.Fprintf(file, "FUSIONALY_USER=%s\n", c.data.User)
 	}
 	if c.data.LicenseKey != "" {
-		fmt.Fprintf(file, "INFINITY_METRICS_LICENSE_KEY=%s\n", c.data.LicenseKey)
+		fmt.Fprintf(file, "FUSIONALY_LICENSE_KEY=%s\n", c.data.LicenseKey)
 	}
 
 	c.logger.Info("Configuration saved to %s", filename)
