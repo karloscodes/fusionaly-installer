@@ -249,10 +249,10 @@ func (d *Docker) Update(conf *config.Config) error {
 		return errors.NewDockerError("health_check", newName, err)
 	}
 
-	// Redeploy Caddy to ensure it uses the new image
-	d.logger.Info("Redeploying Caddy with new image...")
+	// Switch Caddy to point to the new container
+	d.logger.Info("Switching Caddy to point to new container %s...", newName)
 	caddyFile := filepath.Join(dataDir, "Caddyfile")
-	caddyContent, err := d.generateCaddyfile(data)
+	caddyContent, err := d.generateCaddyfileForContainer(data, newName)
 	if err != nil {
 		return fmt.Errorf("generate Caddyfile: %w", err)
 	}
@@ -534,6 +534,13 @@ func (d *Docker) ensureNetworkConnected(container, network string) error {
 }
 
 func (d *Docker) generateCaddyfile(data config.ConfigData) (string, error) {
+	// Determine which container is currently active
+	activeContainer := d.getActiveContainer()
+	return d.generateCaddyfileForContainer(data, activeContainer)
+}
+
+// generateCaddyfileForContainer generates Caddyfile for a specific container
+func (d *Docker) generateCaddyfileForContainer(data config.ConfigData, containerName string) (string, error) {
 	env := os.Getenv("ENV")
 	var tlsConfig string
 	if env == "test" {
@@ -552,11 +559,13 @@ func (d *Docker) generateCaddyfile(data config.ConfigData) (string, error) {
 	}
 
 	tplData := struct {
-		Domain     string
-		TLSConfig  string
+		Domain          string
+		TLSConfig       string
+		ActiveContainer string
 	}{
-		Domain:     data.Domain,
-		TLSConfig:  tlsConfig,
+		Domain:          data.Domain,
+		TLSConfig:       tlsConfig,
+		ActiveContainer: containerName,
 	}
 
 	tmpl, err := template.New("caddyfile").Parse(caddyfileTemplate)
@@ -569,8 +578,20 @@ func (d *Docker) generateCaddyfile(data config.ConfigData) (string, error) {
 		return "", fmt.Errorf("execute template: %w", err)
 	}
 
-	d.logger.Debug("Generated Caddyfile: %s", buf.String())
+	d.logger.Debug("Generated Caddyfile with active container %s: %s", containerName, buf.String())
 	return buf.String(), nil
+}
+
+// getActiveContainer determines which app container is currently running
+func (d *Docker) getActiveContainer() string {
+	if d.IsRunning(AppNamePrimary) {
+		return AppNamePrimary
+	}
+	if d.IsRunning(AppNameSecondary) {
+		return AppNameSecondary
+	}
+	// Default to primary if neither is running (initial deployment)
+	return AppNamePrimary
 }
 
 func (d *Docker) waitForAppHealth(name string) error {
