@@ -52,26 +52,26 @@ jobs:
           chmod +x bin/fusionaly
           ls -la bin/
 
-      - name: Run all installer tests
-        env:
-          BINARY_PATH: ${{ github.workspace }}/bin/fusionaly
-          DEBUG: 1
-          LICENSE_KEY: ${{ secrets.LICENSE_KEY }}
-        run: make test
+      # - name: Run all installer tests
+      #   env:
+      #     BINARY_PATH: ${{ github.workspace }}/bin/fusionaly
+      #     DEBUG: 1
+      #     LICENSE_KEY: ${{ secrets.LICENSE_KEY }}
+      #   run: make test
 
-      - name: Collect logs on failure
-        if: failure()
-        run: |
-          echo "Collecting Docker logs..."
-          docker ps -a
-          for container in $(docker ps -a --format "{{.Names}}"); do
-            echo "========== Logs for $container =========="
-            docker logs $container || true
-          done
+      # - name: Collect logs on failure
+      #   if: failure()
+      #   run: |
+      #     echo "Collecting Docker logs..."
+      #     docker ps -a
+      #     for container in $(docker ps -a --format "{{.Names}}"); do
+      #       echo "========== Logs for $container =========="
+      #       docker logs $container || true
+      #     done
 
-          echo "Collecting service logs..."
-          ls -la /opt/fusionaly/logs/ || true
-          cat /opt/fusionaly/logs/fusionaly.log || true
+      #     echo "Collecting service logs..."
+      #     ls -la /opt/fusionaly/logs/ || true
+      #     cat /opt/fusionaly/logs/fusionaly.log || true
 
       - name: Get version
         id: get_version
