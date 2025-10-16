@@ -139,10 +139,16 @@ func (d *Docker) Deploy(conf *config.Config) error {
 
 	// Deploy app first
 	if err := d.DeployApp(data, AppNamePrimary); err != nil {
+		d.logger.Error("Initial app deployment failed, running diagnostics...")
+		if d.containerExists(AppNamePrimary) {
+			d.DiagnoseContainerStartup(AppNamePrimary)
+		}
 		return fmt.Errorf("initial app deploy failed: %w", err)
 	}
 
 	if err := d.waitForAppHealth(AppNamePrimary); err != nil {
+		d.logger.Error("Initial app health check failed, running diagnostics...")
+		d.DiagnoseContainerStartup(AppNamePrimary)
 		if cleanupErr := d.StopAndRemove(AppNamePrimary); cleanupErr != nil {
 			d.logger.Error("Failed to cleanup unhealthy container %s: %v", AppNamePrimary, cleanupErr)
 		}
@@ -219,9 +225,11 @@ func (d *Docker) Update(conf *config.Config) error {
 			break
 		} else if i == MaxRetries-1 {
 			d.logger.Error("Failed to deploy %s after %d retries", newName, MaxRetries)
-			// If the container was created but failed to start properly, try to get logs
+			// If the container was created but failed to start properly, run comprehensive diagnostics
 			if d.containerExists(newName) {
-				d.logContainerLogs(newName)
+				d.DiagnoseContainerStartup(newName)
+			} else {
+				d.logger.Error("Container %s was never created - deployment failed at creation stage", newName)
 			}
 			if cleanupErr := d.StopAndRemove(newName); cleanupErr != nil {
 				d.logger.Error("Failed to cleanup failed container %s: %v", newName, cleanupErr)
@@ -243,6 +251,8 @@ func (d *Docker) Update(conf *config.Config) error {
 	}
 
 	if err := d.waitForAppHealth(newName); err != nil {
+		d.logger.Error("Health check failed for %s, running diagnostics...", newName)
+		d.DiagnoseContainerStartup(newName)
 		if cleanupErr := d.StopAndRemove(newName); cleanupErr != nil {
 			d.logger.Error("Failed to cleanup unhealthy container %s: %v", newName, cleanupErr)
 		}
@@ -284,6 +294,170 @@ func (d *Docker) Update(conf *config.Config) error {
 	if _, err := d.RunCommand("image", "prune", "-f"); err != nil {
 		d.logger.Warn("Failed to prune unused images: %v", err)
 	}
+
+	return nil
+}
+
+func (d *Docker) UpdateWithDebug(conf *config.Config) error {
+	d.logger.Debug("Starting Docker update with debug logging")
+	data := conf.GetData()
+	dataDir := data.InstallDir
+
+	d.logger.Debug("Install directory: %s", dataDir)
+
+	if _, err := d.RunCommand("network", "inspect", NetworkName); err != nil {
+		d.logger.Info("Creating Docker network %s", NetworkName)
+		if _, err := d.RunCommand("network", "create", NetworkName); err != nil {
+			return fmt.Errorf("create network: %w", err)
+		}
+		d.logger.Success("Network created")
+	} else {
+		d.logger.Debug("Docker network %s already exists", NetworkName)
+	}
+
+	// Show current running containers
+	d.logger.Debug("Checking current container status...")
+	d.ShowContainerStatus()
+
+	// Pull new images using the unified DockerImages struct
+	dockerImages := conf.GetDockerImages()
+	d.logger.Debug("Images to check: App=%s, Caddy=%s", dockerImages.AppImage, dockerImages.CaddyImage)
+	
+	for _, image := range []string{dockerImages.AppImage, dockerImages.CaddyImage} {
+		// Check if we need to pull the image
+		shouldPull, err := d.ShouldPullImage(image)
+		if err != nil {
+			d.logger.Warn("Error checking image status for %s: %v, will attempt to pull", image, err)
+			shouldPull = true
+		}
+
+		d.logger.Debug("Image %s should pull: %v", image, shouldPull)
+
+		if shouldPull {
+			d.logger.Info("Pulling %s...", image)
+			for i := 0; i < MaxRetries; i++ {
+				d.logger.Debug("Pull attempt %d/%d for %s", i+1, MaxRetries, image)
+				if _, err := d.RunCommand("pull", image); err == nil {
+					d.logger.Success("%s pulled successfully", image)
+					d.logImageDigest(image)
+					break
+				} else if i == MaxRetries-1 {
+					d.logger.Error("Pull failed after %d retries: %v", MaxRetries, err)
+					return fmt.Errorf("pull %s failed after %d retries: %w", image, MaxRetries, err)
+				}
+				d.logger.Warn("Pull %s failed, retrying (%d/%d): %v", image, i+1, MaxRetries, err)
+				time.Sleep(time.Duration(i+1) * 2 * time.Second)
+			}
+		} else {
+			d.logger.Success("Image %s is already up to date, skipping pull", image)
+			// Still log the digest for consistency in logs
+			d.logImageDigest(image)
+		}
+	}
+
+	// Determine current and new app instances
+	currentName := AppNamePrimary
+	newName := AppNameSecondary
+	if d.IsRunning(AppNameSecondary) && !d.IsRunning(AppNamePrimary) {
+		currentName, newName = AppNameSecondary, AppNamePrimary
+	}
+
+	d.logger.Debug("Current container: %s, New container: %s", currentName, newName)
+
+	// Deploy the new app instance
+	for i := 0; i < MaxRetries; i++ {
+		d.logger.Debug("Deploying new container %s (attempt %d/%d)", newName, i+1, MaxRetries)
+		if err := d.DeployApp(data, newName); err == nil {
+			d.logger.Success("%s deployed successfully", newName)
+			break
+		} else if i == MaxRetries-1 {
+			d.logger.Error("Failed to deploy %s after %d retries", newName, MaxRetries)
+			// If the container was created but failed to start properly, try to get logs
+			if d.containerExists(newName) {
+				d.logger.Debug("Container %s exists but failed, fetching logs...", newName)
+				d.ShowContainerLogs(newName, 100) // Show more logs in debug mode
+			}
+			if cleanupErr := d.StopAndRemove(newName); cleanupErr != nil {
+				d.logger.Error("Failed to cleanup failed container %s: %v", newName, cleanupErr)
+			}
+			return errors.NewDockerError("deploy", newName, fmt.Errorf("failed after %d retries: %w", MaxRetries, err))
+		}
+		d.logger.Warn("Deploy %s failed, retrying (%d/%d)", newName, i+1, MaxRetries)
+		if cleanupErr := d.StopAndRemove(newName); cleanupErr != nil {
+			d.logger.Error("Failed to cleanup container %s before retry: %v", newName, cleanupErr)
+		}
+		time.Sleep(time.Duration(i+1) * time.Second)
+	}
+
+	d.logger.Debug("Ensuring network connectivity for %s", newName)
+	if err := d.ensureNetworkConnected(newName, NetworkName); err != nil {
+		if cleanupErr := d.StopAndRemove(newName); cleanupErr != nil {
+			d.logger.Error("Failed to cleanup container %s after network error: %v", newName, cleanupErr)
+		}
+		return errors.NewDockerError("network_connect", newName, err)
+	}
+
+	d.logger.Debug("Waiting for %s to become healthy...", newName)
+	if err := d.waitForAppHealth(newName); err != nil {
+		d.logger.Debug("Health check failed for %s, getting detailed logs...", newName)
+		d.ShowContainerLogs(newName, 100)
+		if cleanupErr := d.StopAndRemove(newName); cleanupErr != nil {
+			d.logger.Error("Failed to cleanup unhealthy container %s: %v", newName, cleanupErr)
+		}
+		return errors.NewDockerError("health_check", newName, err)
+	}
+
+	// Switch Caddy to point to the new container
+	d.logger.Info("Switching Caddy to point to new container %s...", newName)
+	d.logger.Debug("Generating new Caddyfile for container %s", newName)
+	caddyFile := filepath.Join(dataDir, "Caddyfile")
+	caddyContent, err := d.generateCaddyfileForContainer(data, newName)
+	if err != nil {
+		return fmt.Errorf("generate Caddyfile: %w", err)
+	}
+	if err := os.WriteFile(caddyFile, []byte(caddyContent), 0o644); err != nil {
+		return fmt.Errorf("write Caddyfile: %w", err)
+	}
+	d.logger.Debug("Caddyfile written, reloading Caddy configuration...")
+	d.logger.Info("Reloading Caddy configuration to point to %s...", newName)
+	if _, err := d.RunCommand("exec", CaddyName, "caddy", "reload", "--config", "/etc/caddy/Caddyfile"); err != nil {
+		d.logger.Warn("Caddy reload failed: %v. Attempting full Caddy redeploy as a fallback.", err)
+		// Show Caddy logs before fallback
+		d.logger.Debug("Showing Caddy logs before redeploy:")
+		d.ShowContainerLogs(CaddyName, 50)
+		
+		// Fallback to stop and redeploy if reload fails
+		if cleanupErr := d.StopAndRemove(CaddyName); cleanupErr != nil {
+			d.logger.Error("Failed to cleanup Caddy container during fallback: %v", cleanupErr)
+		}
+		if errRedeploy := d.deployCaddy(data, caddyFile); errRedeploy != nil {
+			return fmt.Errorf("caddy reload failed and subsequent redeploy also failed: %w (reload error: %v)", errRedeploy, err)
+		}
+		d.logger.Info("Caddy successfully redeployed as a fallback.")
+	} else {
+		d.logger.Success("Caddy configuration reloaded successfully")
+	}
+
+	d.logCaddyVersion()
+	d.logContainerImage(newName)
+
+	// Clean up old app instance
+	d.logger.Debug("Cleaning up old container: %s", currentName)
+	if cleanupErr := d.StopAndRemove(currentName); cleanupErr != nil {
+		d.logger.Error("Failed to cleanup old container %s: %v", currentName, cleanupErr)
+	} else {
+		d.logger.Debug("Old container %s cleaned up successfully", currentName)
+	}
+	
+	d.logger.Debug("Pruning unused Docker images...")
+	if _, err := d.RunCommand("image", "prune", "-f"); err != nil {
+		d.logger.Warn("Failed to prune unused images: %v", err)
+	} else {
+		d.logger.Debug("Unused images pruned successfully")
+	}
+
+	d.logger.Debug("Showing final container status:")
+	d.ShowContainerStatus()
 
 	return nil
 }
@@ -621,7 +795,38 @@ func (d *Docker) logContainerLogs(containerName string) {
 	}
 
 	if logs == "" {
-		d.logger.Warn("No logs available for container %s", containerName)
+		d.logger.Warn("No logs available for container %s - checking container details...", containerName)
+		
+		// When no logs are available, provide more diagnostic info
+		status, err := d.RunCommand("inspect", "--format", "{{.State.Status}}", containerName)
+		if err == nil {
+			d.logger.Info("Container %s current status: %s", containerName, strings.TrimSpace(status))
+		}
+
+		// Check exit code
+		exitCode, err := d.RunCommand("inspect", "--format", "{{.State.ExitCode}}", containerName)
+		if err == nil && strings.TrimSpace(exitCode) != "0" {
+			d.logger.Error("Container exited with code: %s", strings.TrimSpace(exitCode))
+		}
+
+		// Check for error message
+		errMsg, err := d.RunCommand("inspect", "--format", "{{.State.Error}}", containerName)
+		if err == nil && strings.TrimSpace(errMsg) != "" && strings.TrimSpace(errMsg) != "<no value>" {
+			d.logger.Error("Container error: %s", strings.TrimSpace(errMsg))
+		}
+
+		// Check restart count
+		restarts, err := d.RunCommand("inspect", "--format", "{{.RestartCount}}", containerName)
+		if err == nil && strings.TrimSpace(restarts) != "0" {
+			d.logger.Warn("Container has restarted %s times", strings.TrimSpace(restarts))
+		}
+
+		// Check if it's still starting
+		startedAt, err := d.RunCommand("inspect", "--format", "{{.State.StartedAt}}", containerName)
+		if err == nil {
+			d.logger.Info("Container started at: %s", strings.TrimSpace(startedAt))
+		}
+
 	} else {
 		for _, line := range strings.Split(logs, "\n") {
 			if line != "" {
@@ -639,6 +844,105 @@ func (d *Docker) logContainerLogs(containerName string) {
 	if err == nil && strings.TrimSpace(errMsg) != "" && strings.TrimSpace(errMsg) != "<no value>" {
 		d.logger.Error("Container %s error message: %s", containerName, strings.TrimSpace(errMsg))
 	}
+}
+
+// DiagnoseContainerStartup provides comprehensive diagnostics for container startup issues
+func (d *Docker) DiagnoseContainerStartup(containerName string) {
+	d.logger.Error("=== CONTAINER STARTUP DIAGNOSTICS: %s ===", containerName)
+	
+	// Check if container exists
+	if !d.containerExists(containerName) {
+		d.logger.Error("Container %s does not exist - creation may have failed", containerName)
+		return
+	}
+
+	// Get comprehensive container information
+	d.logger.Info("Container exists, gathering diagnostic information...")
+	
+	// Get all logs with timestamps
+	d.logger.Info("--- Full Container Logs ---")
+	logs, err := d.RunCommand("logs", "--timestamps", containerName)
+	if err != nil {
+		d.logger.Error("Failed to get full logs: %v", err)
+	} else if logs == "" {
+		d.logger.Warn("No logs produced by container (possible immediate crash)")
+	} else {
+		lines := strings.Split(logs, "\n")
+		for i, line := range lines {
+			if line != "" {
+				d.logger.Info("[LOG %d] %s", i+1, line)
+			}
+		}
+	}
+	
+	// Get container state details
+	d.logger.Info("--- Container State Details ---")
+	stateJSON, err := d.RunCommand("inspect", "--format", "{{json .State}}", containerName)
+	if err == nil {
+		d.logger.Info("State JSON: %s", stateJSON)
+	}
+
+	// Check for common issues
+	d.logger.Info("--- Common Issue Checks ---")
+	
+	// Check if image exists locally
+	image, err := d.RunCommand("inspect", "--format", "{{.Config.Image}}", containerName)
+	if err == nil {
+		imageExists, imgErr := d.RunCommand("inspect", "--type=image", strings.TrimSpace(image))
+		if imgErr != nil {
+			d.logger.Error("Image %s may not exist locally: %v", strings.TrimSpace(image), imgErr)
+		} else {
+			d.logger.Info("Image %s exists locally", strings.TrimSpace(image))
+			// Get image details
+			d.logger.Debug("Image details: %s", strings.Split(imageExists, "\n")[0])
+		}
+	}
+
+	// Check port conflicts
+	ports, err := d.RunCommand("inspect", "--format", "{{range $p, $conf := .Config.ExposedPorts}}{{$p}} {{end}}", containerName)
+	if err == nil && strings.TrimSpace(ports) != "" {
+		d.logger.Info("Container exposes ports: %s", strings.TrimSpace(ports))
+		
+		// Check if ports are already in use
+		for _, port := range strings.Fields(strings.TrimSpace(ports)) {
+			portNum := strings.Split(port, "/")[0]
+			if portNum != "" {
+				// Check what's using this port
+				d.logger.Debug("Checking port %s usage...", portNum)
+				portCheck, portErr := d.RunCommand("ps", "-f", fmt.Sprintf("publish=%s", portNum))
+				if portErr == nil && strings.TrimSpace(portCheck) != "" {
+					d.logger.Warn("Port %s may be in use by other containers: %s", portNum, strings.TrimSpace(portCheck))
+				}
+			}
+		}
+	}
+
+	// Check environment variables
+	env, err := d.RunCommand("inspect", "--format", "{{range .Config.Env}}{{.}}\n{{end}}", containerName)
+	if err == nil {
+		d.logger.Info("--- Environment Variables ---")
+		for _, envVar := range strings.Split(env, "\n") {
+			if envVar != "" && !strings.Contains(envVar, "PASSWORD") && !strings.Contains(envVar, "SECRET") {
+				d.logger.Debug("ENV: %s", envVar)
+			}
+		}
+	}
+
+	// Check mounts
+	mounts, err := d.RunCommand("inspect", "--format", "{{range .Mounts}}{{.Source}}:{{.Destination}} ({{.Type}}) {{end}}", containerName)
+	if err == nil && strings.TrimSpace(mounts) != "" {
+		d.logger.Info("--- Volume Mounts ---")
+		d.logger.Info("Mounts: %s", strings.TrimSpace(mounts))
+	}
+
+	// Check if there are recent similar containers that failed
+	d.logger.Info("--- Recent Failed Containers ---")
+	recent, err := d.RunCommand("ps", "-a", "--filter", fmt.Sprintf("name=%s", strings.TrimSuffix(containerName, "-1")+"-"), "--format", "table {{.Names}}\t{{.Status}}\t{{.CreatedAt}}")
+	if err == nil {
+		d.logger.Info("Recent containers with similar names:\n%s", recent)
+	}
+
+	d.logger.Error("=== END DIAGNOSTICS ===")
 }
 
 func (d *Docker) logCaddyVersion() {
@@ -668,10 +972,14 @@ func (d *Docker) logImageDigest(image string) {
 	}
 }
 
-func (d *Docker) containerExists(name string) bool {
+func (d *Docker) ContainerExists(name string) bool {
 	// Check if the container exists, even if it's not running
 	out, err := d.RunCommand("ps", "-a", "-q", "-f", "name="+name)
 	return err == nil && strings.TrimSpace(out) != ""
+}
+
+func (d *Docker) containerExists(name string) bool {
+	return d.ContainerExists(name)
 }
 
 // VerifyContainersRunning checks if the Fusionaly containers are running
@@ -744,4 +1052,74 @@ func extractBaseDomain(domain string) string {
 	// - "analytics.company.com" -> "company.com"
 	// - "sub.domain.example.org" -> "example.org"
 	return strings.Join(parts[len(parts)-2:], ".")
+}
+
+// ShowContainerStatus displays detailed status information for all relevant containers
+func (d *Docker) ShowContainerStatus() {
+	d.logger.Debug("=== Container Status ===")
+	
+	containers := []string{CaddyName, AppNamePrimary, AppNameSecondary}
+	for _, container := range containers {
+		if d.IsRunning(container) {
+			status, err := d.RunCommand("inspect", "--format", "{{.State.Status}}", container)
+			if err == nil {
+				d.logger.Debug("Container %s: %s", container, strings.TrimSpace(status))
+			}
+			
+			// Get image info
+			image, err := d.RunCommand("inspect", "--format", "{{.Config.Image}}", container)
+			if err == nil {
+				d.logger.Debug("  Image: %s", strings.TrimSpace(image))
+			}
+			
+			// Get ports info
+			ports, err := d.RunCommand("port", container)
+			if err == nil && strings.TrimSpace(ports) != "" {
+				d.logger.Debug("  Ports: %s", strings.TrimSpace(ports))
+			}
+		} else {
+			d.logger.Debug("Container %s: not running", container)
+		}
+	}
+	
+	d.logger.Debug("=====================")
+}
+
+// ShowContainerLogs displays the last N lines of logs for a specific container
+func (d *Docker) ShowContainerLogs(containerName string, lines int) {
+	d.logger.Debug("=== Logs for %s (last %d lines) ===", containerName, lines)
+	
+	if !d.containerExists(containerName) {
+		d.logger.Debug("Container %s does not exist", containerName)
+		return
+	}
+	
+	logs, err := d.RunCommand("logs", "--tail", fmt.Sprintf("%d", lines), containerName)
+	if err != nil {
+		d.logger.Error("Failed to fetch logs for container %s: %v", containerName, err)
+		return
+	}
+	
+	if logs == "" {
+		d.logger.Debug("No logs available for container %s", containerName)
+	} else {
+		for _, line := range strings.Split(logs, "\n") {
+			if line != "" {
+				d.logger.Debug("[%s] %s", containerName, line)
+			}
+		}
+	}
+	
+	// Also show container status and error if any
+	status, err := d.RunCommand("inspect", "--format", "{{.State.Status}}", containerName)
+	if err == nil {
+		d.logger.Debug("Container %s status: %s", containerName, strings.TrimSpace(status))
+	}
+	
+	errMsg, err := d.RunCommand("inspect", "--format", "{{.State.Error}}", containerName)
+	if err == nil && strings.TrimSpace(errMsg) != "" && strings.TrimSpace(errMsg) != "<no value>" {
+		d.logger.Error("Container %s error: %s", containerName, strings.TrimSpace(errMsg))
+	}
+	
+	d.logger.Debug("=== End logs for %s ===", containerName)
 }
