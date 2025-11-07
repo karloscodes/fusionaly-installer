@@ -29,4 +29,6 @@ Thumbs.db
 test_input.txt
 test-vm
 
-fusionaly
+# Binary file (not the source directory)
+/fusionaly
+bin/fusionaly
