@@ -39,7 +39,7 @@ func TestInstallation(t *testing.T) {
 			if _, err := os.Stat(defaultBinary); err == nil {
 				binaryPath = defaultBinary
 			} else {
-				t.Fatalf("No binary found. Run 'go build -o bin/fusionaly-current ./cmd/infinitymetrics' first")
+				t.Fatalf("No binary found. Run 'go build -o bin/fusionaly-current ./cmd/fusionaly' first")
 			}
 		}
 	}

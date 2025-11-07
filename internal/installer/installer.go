@@ -569,7 +569,7 @@ func (i *Installer) installBinary() error {
 // extractBaseDomain extracts the base domain from a subdomain
 // Examples:
 //   - "analytics.company.com" -> "company.com"
-//   - "t.getinfinitymetrics.com" -> "getinfinitymetrics.com"
+//   - "t.getfusionaly.com" -> "getfusionaly.com"
 //   - "google.com" -> "google.com"
 //   - "localhost" -> "localhost"
 func extractBaseDomain(domain string) string {

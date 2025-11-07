@@ -95,7 +95,7 @@ func TestExtractBaseDomain(t *testing.T) {
 		expected string
 	}{
 		// Examples from requirements
-		{"subdomain example", "t.getinfinitymetrics.com", "getinfinitymetrics.com"},
+		{"subdomain example", "t.getfusionaly.com", "getfusionaly.com"},
 		{"google.com", "google.com", "google.com"},
 		{"analytics subdomain", "analytics.company.com", "company.com"},
 		
@@ -131,7 +131,7 @@ func TestGenerateAdminEmail(t *testing.T) {
 		expected string
 	}{
 		// Examples from requirements
-		{"subdomain example", "t.getinfinitymetrics.com", "admin-fusionaly@getinfinitymetrics.com"},
+		{"subdomain example", "t.getfusionaly.com", "admin-fusionaly@getfusionaly.com"},
 		{"google.com", "google.com", "admin-fusionaly@google.com"},
 		{"analytics subdomain", "analytics.company.com", "admin-fusionaly@company.com"},
 		

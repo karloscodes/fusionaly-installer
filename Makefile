@@ -9,7 +9,7 @@ GOGET=$(GOCMD) get
 GOMOD=$(GOCMD) mod
 BINARY_NAME=fusionaly
 BINARY_DIR=bin
-MAIN_PATH=cmd/infinitymetrics/main.go
+MAIN_PATH=cmd/fusionaly/main.go
 ARCH ?= $(shell uname -m | sed 's/x86_64/amd64/' | sed 's/aarch64/arm64/')
 
 # Get version from file
