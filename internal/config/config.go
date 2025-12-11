@@ -681,10 +681,14 @@ func (c *Config) FetchFromServer(_ string) error {
 func (c *Config) fetchConfigJSON(url string) error {
 	c.logger.Info("Fetching config.json from %s", url)
 	resp, err := http.Get(url)
-	if err != nil || resp.StatusCode != http.StatusOK {
-		return fmt.Errorf("failed to fetch config.json: %v, status: %s", err, resp.Status)
+	if err != nil {
+		return fmt.Errorf("failed to fetch config.json: %w", err)
 	}
 	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return fmt.Errorf("failed to fetch config.json: status: %s", resp.Status)
+	}
 
 	var serverData struct {
 		AppImage   string `json:"app_image"`
